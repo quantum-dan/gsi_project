@@ -2,6 +2,39 @@ from bottle import route, run, get, post, request, response
 import pymysql
 from conf import *
 
+"""
+database structure
+*users
+	users (id int, login text, password text, role text)
+*quiz
+	quizzes (id int, name text)
+	questions (id int, quiz_id int, question text, opt1 text, opt2 text, opt3 text, opt4 text, c_opt int)
+"""
+
+def getq():
+	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
+	c = conn.cursor()
+	c.execute("SELECT id, name FROM quizzes")
+	quizzes = [(i[0], i[1]) for i in c]
+	questions = {}
+	for i in quizzes:
+		name = i[1]
+		id = int(i[0])
+		c.execute("SELECT question, opt1, opt2, opt3, opt4, c_opt FROM questions WHERE quiz_id=%d" % id)
+		questions[name] = [[ x[0], x[1], x[2], x[3], x[4], x[5] ] for x in c]
+	c.close()
+	conn.close()
+	return questions
+
+def getq_html():
+	questions = getq()
+	htStrings = []
+	for i in questions:
+		question = questions[i]
+		htString = "<input type=radio name='%s' value=%d>%s</input><br />"
+		htStrings.append(("<h5>%s</h5>" % i) +  "".join([("<h6>%s</h6>" % q[0]) + "".join([htString % (q[0], n, q[n]) for n in range(1, 5)]) for q in question]))
+	return "".join(htStrings)
+
 def template(filename, args=()):
 	f = open("templates/" + filename, "r")
 	fstring = f.read()

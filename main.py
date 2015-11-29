@@ -16,11 +16,18 @@ conn.close()"""
 """Database Structure:
 *users
 	users (id int not null auto_increment primary key, login text, password text, role text)
+*quiz
+	quizzes (id int not null auto_increment primary key, name text)
+	questions (id int not null auto_increment primary key, quiz_id int, question text, opt1 text, opt2 text, opt3 text, opt4 text, c_opt int)
 """
 
 @route("/")
 def index():
 	return template("index.tmpl") 
+
+@route("/quiz")
+def quiz_view():
+	return template("quiz.tmpl", getq_html())
 
 @get("/create_acct")
 def create_acct():
