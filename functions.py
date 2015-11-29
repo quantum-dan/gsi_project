@@ -32,8 +32,31 @@ def getq_html():
 	for i in questions:
 		question = questions[i]
 		htString = "<input type=radio name='%s' value=%d>%s</input><br />"
-		htStrings.append(("<h5>%s</h5>" % i) +  "".join([("<h6>%s</h6>" % q[0]) + "".join([htString % (q[0], n, q[n]) for n in range(1, 5)]) for q in question]))
-	return "".join(htStrings)
+		htStrings.append((("<h5>%s</h5>" % i) +  "".join([("<h6>%s</h6>" % q[0]) + "".join([htString % (q[0], n-1, q[n]) for n in range(1, 5)]) for q in question]), i))
+	return htStrings
+
+def grade_quiz(quiz, questions):
+	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
+	c = conn.cursor()
+	c.execute("SELECT id FROM quizzes WHERE name='%s'" % sql_sanitize(quiz))
+	id = 0
+	for row in c:
+		id = int(row[0])
+		break
+	c.execute("SELECT question, c_opt FROM questions WHERE quiz_id=%d" % id)
+	questions_db = {}
+	questions_n = 0
+	for row in c:
+		questions_db[row[0]] = row[1]
+		questions_n += 1
+	c.close()
+	conn.close()
+	total = 0
+	for q in questions:
+		question = questions_db[q[0]]
+		if q[1] == question:
+			total += 1
+	return float(total)/float(questions_n)
 
 def template(filename, args=()):
 	f = open("templates/" + filename, "r")
