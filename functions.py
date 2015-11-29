@@ -20,8 +20,8 @@ def getq():
 	for i in quizzes:
 		name = i[1]
 		id = int(i[0])
-		c.execute("SELECT question, opt1, opt2, opt3, opt4, c_opt FROM questions WHERE quiz_id=%d" % id)
-		questions[name] = [[ x[0], x[1], x[2], x[3], x[4], x[5] ] for x in c]
+		c.execute("SELECT id, question, opt1, opt2, opt3, opt4, c_opt FROM questions WHERE quiz_id=%d" % id)
+		questions[name] = [[ x[1], x[2], x[3], x[4], x[5], x[6], x[0] ] for x in c]
 	c.close()
 	conn.close()
 	return questions
@@ -32,22 +32,22 @@ def getq_html():
 	for i in questions:
 		question = questions[i]
 		htString = "<input type=radio name='%s' value=%d>%s</input><br />"
-		htStrings.append((("<h5>%s</h5>" % i) +  "".join([("<h6>%s</h6>" % q[0]) + "".join([htString % (q[0], n-1, q[n]) for n in range(1, 5)]) for q in question]), i))
+		htStrings.append((("<h5>%s</h5>" % i) +  "".join([("<h6>%s</h6>" % q[0]) + "".join([htString % (q[6], n-1, q[n]) for n in range(1, 5)]) for q in question]), i))
 	return htStrings
 
 def grade_quiz(quiz, questions):
 	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
 	c = conn.cursor()
-	c.execute("SELECT id FROM quizzes WHERE name='%s'" % sql_sanitize(quiz))
+	c.execute("SELECT id FROM quizzes WHERE name='%s'" % quiz)
 	id = 0
 	for row in c:
 		id = int(row[0])
 		break
-	c.execute("SELECT question, c_opt FROM questions WHERE quiz_id=%d" % id)
+	c.execute("SELECT question, c_opt, id FROM questions WHERE quiz_id=%d" % id)
 	questions_db = {}
 	questions_n = 0
 	for row in c:
-		questions_db[row[0]] = row[1]
+		questions_db[row[2]] = row[1]
 		questions_n += 1
 	c.close()
 	conn.close()
@@ -56,7 +56,7 @@ def grade_quiz(quiz, questions):
 		question = questions_db[q[0]]
 		if q[1] == question:
 			total += 1
-	return float(total)/float(questions_n)
+	return 100 * float(total)/float(questions_n)
 
 def template(filename, args=()):
 	f = open("templates/" + filename, "r")

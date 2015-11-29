@@ -27,7 +27,18 @@ def index():
 
 @route("/quiz")
 def quiz_view():
-	return template("quiz.tmpl", getq_html())
+	htString = ""
+	questions = getq_html()
+	for i in questions:
+		htString = htString + ("<form method=POST action='/grade/%s'>%s<br /><input type=submit value='Submit' /></form>" % (i[1], i[0]))
+	return template("quiz.tmpl", htString)
+
+@post("/grade/<name>")
+def quiz_grade(name):
+	questions = [i[6] for i in getq()[name]]
+	passed =[(i, int(request.forms.get(str(i)))) for i in questions]
+	pct = grade_quiz(name, passed)
+	return template("graded.tmpl", (pct, name))
 
 @get("/create_acct")
 def create_acct():
