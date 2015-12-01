@@ -38,7 +38,18 @@ def quiz_grade(name):
 	questions = [i[6] for i in getq()[name]]
 	passed =[(i, int(request.forms.get(str(i)))) for i in questions]
 	pct = grade_quiz(name, passed)
+	username = request.get_cookie("login", secret=LOGIN_COOKIE_KEY)
+	if username:
+		insert_score(username, pct)
 	return template("graded.tmpl", (pct, name))
+
+@get("/scores")
+def view_scores():
+	username = request.get_cookie("login", secret=LOGIN_COOKIE_KEY)
+	if not username:
+		return template("scores.tmpl", "You are not logged in")
+	score = avg_score(username)
+	return template("scores.tmpl", "Your average score is: %f percent" % score)
 
 @get("/create_acct")
 def create_acct():
@@ -58,6 +69,21 @@ def create_account_post():
 			return template("create_acct.tmpl", "Successfully created account with username %s" % username)
 		else:
 			return template("create_acct.tmpl", "Account with username %s already exists" % username)
+
+@post("/create_acct_admin")
+def create_account_admin():
+	username = request.forms.get("username")
+	password = request.forms.get("password1")
+	password_check = request.forms.get("password2")
+	role = request.forms.get("role")
+	if password != password_check:
+		return template("base.tmpl", "<p>Passwords do not match.</p>")
+	else:
+		succeeded = create_account(username, password, role)
+		if succeeded:
+			return template("admin_panel.tmpl")
+		else:
+			return template("base.tmpl", "<p>Account with username %s already exists" % username)
 
 @route("/admin")
 def admin_panel():
