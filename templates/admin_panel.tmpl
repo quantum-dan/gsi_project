@@ -14,6 +14,24 @@
 		<select name="role"><option value="admin">Admin</option></select>
 		<br /><input type=submit value="Create" />
 	</form>
+	<form method=POST action="/create_quiz">
+		<h4>Create a New Quiz:</h4>
+		<input type=text name="name" placeholder="Title" /><br />
+		<input type=submit value="Submit" />
+	</form>
+	<form method=POST action="/add_question">
+		<h4>Add a Question to a Quiz:</h4>
+		<label for="id">Choose Quiz:</label><br />
+		<select name="id">%s</select><br />
+		<input type=text name="question" placeholder="Question Text" /><br />
+		<input type=text name="opt1" placeholder="First option" /><br />
+		<input type=text name="opt2" placeholder="Second option" /><br />
+		<input type=text name="opt3" placeholder="Third option" /><br />
+		<input type=text name="opt4" placeholder="Fourth option" /><br />
+		<label for="c_opt">Which option is correct?</label>
+		<select name="c_opt"><option value=1>1</option><option value=2>2</option><option value=3>3</option><option value=4>4</option></select><br />
+		<input type=submit value="Submit" />
+	</form>
 	<p><a href="/">Home</a></p>
 </body>
 </html>

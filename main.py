@@ -1,4 +1,4 @@
-from bottle import route, run, get, post, request, static_file, error, response
+from bottle import route, run, get, post, request, static_file, error, response, redirect
 import pymysql
 from conf import *
 from functions import *
@@ -79,10 +79,10 @@ def create_account_admin():
 	user_role = check_role(request.get_cookie("login", secret=LOGIN_COOKIE_KEY))
 	if password != password_check:
 		return template("base.tmpl", "<p>Passwords do not match.</p>")
-	else if user_role == "superuser" or user_role == "admin":
+	elif user_role == "superuser" or user_role == "admin":
 		succeeded = create_account(username, password, role)
 		if succeeded:
-			return template("admin_panel.tmpl")
+			redirect("/admin")
 		else:
 			return template("base.tmpl", "<p>Account with username %s already exists" % username)
 	else:
@@ -94,7 +94,7 @@ def create_new_quiz():
 	if role == "admin" or role == "superuser":
 		quiz_name = request.forms.get("name")
 		create_quiz(quiz_name)
-		return template("admin_panel.tmpl")
+		redirect("/admin")
 	else:
 		return template("base.tmpl", "<p>You are not an admin.  Go away.</p>")
 
@@ -108,9 +108,9 @@ def add_q_to_quiz():
 		opt2 = request.forms.get("opt2")
 		opt3 = request.forms.get("opt3")
 		opt4 = request.forms.get("opt4")
-		c_opt = int(request.forms.get("c_opt"))
+		c_opt = int(request.forms.get("c_opt")) - 1
 		create_question(quiz_id, question, opt1, opt2, opt3, opt4, c_opt)
-		return template("admin_panel.tmpl")
+		redirect("/admin")
 	else:
 		return template("base.tmpl", "<p>You are not an admin.  Go away.</p>")
 
@@ -120,9 +120,9 @@ def admin_panel():
 	role = check_role(username)
 	if role == "superuser" or role == "admin":
 		quizzes = getquizzes()
-		htStrings = ["<option value=%s>%s</option" % (i[0], i[1]) for i in quizzes]
+		htStrings = ["<option value=%s>%s</option>" % (i[0], i[1]) for i in quizzes]
 		htString = "".join(htStrings)
-		return template("admin_panel.tmpl" % htString)
+		return template("admin_panel.tmpl", htString)
 	return template("not_admin.tmpl")
 
 @route("/<user>")

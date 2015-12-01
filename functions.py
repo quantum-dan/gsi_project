@@ -15,7 +15,7 @@ def getquizzes():
 	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
 	c = conn.cursor()
 	c.execute("SELECT id, name FROM quizzes")
-	quizzes = [(i[0], i[1]) for i in c]
+	quizzes = [(i[0], unsanitize(i[1])) for i in c]
 	c.close()
 	conn.close()
 	return quizzes
@@ -24,7 +24,7 @@ def getq():
 	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
 	c = conn.cursor()
 	c.execute("SELECT id, name FROM quizzes")
-	quizzes = [(i[0], i[1]) for i in c]
+	quizzes = [(i[0], unsanitize(i[1])) for i in c]
 	questions = {}
 	for i in quizzes:
 		name = i[1]
@@ -91,7 +91,7 @@ def getq_html():
 def grade_quiz(quiz, questions):
 	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
 	c = conn.cursor()
-	c.execute("SELECT id FROM quizzes WHERE name='%s'" % quiz)
+	c.execute("SELECT id FROM quizzes WHERE name='%s'" % sql_sanitize(quiz))
 	id = 0
 	for row in c:
 		id = int(row[0])
