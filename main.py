@@ -76,21 +76,53 @@ def create_account_admin():
 	password = request.forms.get("password1")
 	password_check = request.forms.get("password2")
 	role = request.forms.get("role")
+	user_role = check_role(request.get_cookie("login", secret=LOGIN_COOKIE_KEY))
 	if password != password_check:
 		return template("base.tmpl", "<p>Passwords do not match.</p>")
-	else:
+	else if user_role == "superuser" or user_role == "admin":
 		succeeded = create_account(username, password, role)
 		if succeeded:
 			return template("admin_panel.tmpl")
 		else:
 			return template("base.tmpl", "<p>Account with username %s already exists" % username)
+	else:
+		return template("base.tmpl", "<p>You are not an admin.  Go away.</p>")
+
+@post("/create_quiz")
+def create_new_quiz():
+	role = check_role(request.get_cookie("login", secret=LOGIN_COOKIE_KEY))
+	if role == "admin" or role == "superuser":
+		quiz_name = request.forms.get("name")
+		create_quiz(quiz_name)
+		return template("admin_panel.tmpl")
+	else:
+		return template("base.tmpl", "<p>You are not an admin.  Go away.</p>")
+
+@post("/add_question")
+def add_q_to_quiz():
+	role = check_role(request.get_cookie("login", secret=LOGIN_COOKIE_KEY))
+	if role == "admin" or role == "superuser":
+		quiz_id = int(request.forms.get("id"))
+		question = request.forms.get("question")
+		opt1 = request.forms.get("opt1")
+		opt2 = request.forms.get("opt2")
+		opt3 = request.forms.get("opt3")
+		opt4 = request.forms.get("opt4")
+		c_opt = int(request.forms.get("c_opt"))
+		create_question(quiz_id, question, opt1, opt2, opt3, opt4, c_opt)
+		return template("admin_panel.tmpl")
+	else:
+		return template("base.tmpl", "<p>You are not an admin.  Go away.</p>")
 
 @route("/admin")
 def admin_panel():
 	username = request.get_cookie("login", secret=LOGIN_COOKIE_KEY)
 	role = check_role(username)
 	if role == "superuser" or role == "admin":
-		return template("admin_panel.tmpl")
+		quizzes = getquizzes()
+		htStrings = ["<option value=%s>%s</option" % (i[0], i[1]) for i in quizzes]
+		htString = "".join(htStrings)
+		return template("admin_panel.tmpl" % htString)
 	return template("not_admin.tmpl")
 
 @route("/<user>")

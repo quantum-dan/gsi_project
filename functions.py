@@ -11,6 +11,15 @@ database structure
 	questions (id int, quiz_id int, question text, opt1 text, opt2 text, opt3 text, opt4 text, c_opt int)
 """
 
+def getquizzes():
+	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
+	c = conn.cursor()
+	c.execute("SELECT id, name FROM quizzes")
+	quizzes = [(i[0], i[1]) for i in c]
+	c.close()
+	conn.close()
+	return quizzes
+
 def getq():
 	conn = pymysql.connect(host="localhost", port=3306, user=DEFAULT_MYSQL, passwd=MYSQL_PASSWORDS[DEFAULT_MYSQL], db="quiz")
 	c = conn.cursor()
